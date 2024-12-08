@@ -1,0 +1,70 @@
+package com.example.service;
+
+import com.example.repository.CollegeRepository;
+import com.example.repository.OrderRepository;
+
+@Service
+public class PaymentService {
+
+    @Value("${razorpay.key}")
+    private String razorpayKey;
+
+    @Value("${razorpay.secret}")
+    private String razorpaySecret;
+
+    private final OrderRepository orderRepository;
+
+    private final CollegeRepository collegeRepository;
+
+    public PaymentService(OrderRepository orderRepository, CollegeRepository collegeRepository) {
+        this.orderRepository = orderRepository;
+        this.collegeRepository = collegeRepository;
+    }
+
+    public String createOrder(Long collegeId, double amount) throws Exception {
+        RazorpayClient razorpay = new RazorpayClient(razorpayKey, razorpaySecret);
+
+        JSONObject orderRequest = new JSONObject();
+        orderRequest.put("amount", amount * 100); // Amount in paise
+        orderRequest.put("currency", "INR");
+        orderRequest.put("receipt", "order_rcpt_" + collegeId);
+
+        Order razorpayOrder = razorpay.Orders.create(orderRequest);
+
+        // Save to DB
+        Order order = new Order();
+        order.setRazorpayOrderId(razorpayOrder.get("id"));
+        order.setCollegeId(collegeId);
+        order.setPaid(false);
+        orderRepository.save(order);
+
+        return razorpayOrder.toString();
+    }
+
+    public void handlePaymentSuccess(String orderId, String paymentId, String signature) throws Exception {
+        Order order = orderRepository.findByRazorpayOrderId(orderId)
+                .orElseThrow(() -> new Exception("Order not found"));
+
+        // Verify signature
+        RazorpayClient razorpay = new RazorpayClient(razorpayKey, razorpaySecret);
+        JSONObject options = new JSONObject();
+        options.put("razorpay_order_id", orderId);
+        options.put("razorpay_payment_id", paymentId);
+        options.put("razorpay_signature", signature);
+
+        if (razorpay.Utils.verifyPaymentSignature(options)) {
+            order.setRazorpayPaymentId(paymentId);
+            order.setRazorpaySignature(signature);
+            order.setPaid(true);
+            orderRepository.save(order);
+
+            // Update College as Premium
+            College college = collegeRepository.findById(order.getCollegeId())
+                    .orElseThrow(() -> new Exception("College not found"));
+            college.setPremium(true);
+            collegeRepository.save(college);
+        } else {
+            throw new Exception("Invalid payment signature");
+        }
+    }
+}
