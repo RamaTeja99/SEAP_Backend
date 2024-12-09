@@ -39,8 +39,9 @@ public class UserController {
     // Authentication and Token Management
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginData) {
+        System.out.println("Login Page is Accessed");
         User authenticatedUser = userService.authenticate(loginData.getUsername(), loginData.getPassword());
-
+   
         if (authenticatedUser != null) {
             String token = jwtUtil.generateToken(
                 authenticatedUser.getUsername(),
