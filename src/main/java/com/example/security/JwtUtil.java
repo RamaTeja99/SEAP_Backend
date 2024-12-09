@@ -1,6 +1,7 @@
 package com.example.security;
 
 import io.jsonwebtoken.*;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 import io.jsonwebtoken.security.Keys;
@@ -11,8 +12,8 @@ public class JwtUtil {
     private final SecretKey secretKey;
     private final long ONE_DAY = 24 * 60 * 60 * 1000; 
 
-    public JwtUtil() {
-        String secretString = "62fc888bc30adf3ac6934eb5598f8241ee32a12922da6d06b392716c0b0e7859";
+    // Injecting the secretKey from environment variable using @Value annotation
+    public JwtUtil(@Value("${JWT_SECRET_KEY}") String secretString) {
         this.secretKey = Keys.hmacShaKeyFor(secretString.getBytes());
     }
 
