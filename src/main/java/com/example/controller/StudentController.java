@@ -12,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/students")
-@CrossOrigin
+@CrossOrigin(origins = "https://seap.netlify.app", allowedHeaders = "*")
 public class StudentController {
 	@Autowired
     private AchievementService achievementService;

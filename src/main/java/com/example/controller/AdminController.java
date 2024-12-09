@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
-@CrossOrigin
+@CrossOrigin(origins = "https://seap.netlify.app", allowedHeaders = "*")
 public class AdminController {
 	@Autowired
     private CollegeService collegeService;

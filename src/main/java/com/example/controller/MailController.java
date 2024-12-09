@@ -7,6 +7,7 @@ import com.example.service.MailService;
 
 @RestController
 @RequestMapping("/api/mail")
+@CrossOrigin(origins = "https://seap.netlify.app", allowedHeaders = "*")
 public class MailController {
 
     @Autowired
