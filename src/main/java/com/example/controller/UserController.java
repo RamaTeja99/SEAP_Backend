@@ -23,7 +23,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin
+@CrossOrigin(origins = "https://seap.netlify.app", allowedHeaders = "*")
 public class UserController {
 
     @Autowired
